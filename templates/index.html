@@ -21,29 +21,26 @@
     <div id="game-container" class="hidden">
         <header>
             <h2 id="current-player-display"></h2>
-            <div id="ship-info">Schiffe setzen: 5er(1), 4er(2), 3er(3), 2er(4)</div>
+            <div id="ship-counter">Noch zu platzierende Felder: 30</div>
         </header>
-
+    
         <div class="main-layout">
             <div class="board-section">
                 <h3>Meine Flotte</h3>
                 <div id="my-grid" class="grid"></div>
+                <button class="save-btn" onclick="saveFleet()">Flotte speichern</button>
+                <button onclick="resetMyBoard()">Reset</button>
             </div>
-
+            
             <div class="board-section">
-                <h3>Gegner A (Markierungen)</h3>
-                <div id="opponent-a" class="grid opponent-grid"></div>
+                <h3>Gegner A</h3>
+                <div id="opponent-a" class="grid"></div>
             </div>
-
+    
             <div class="board-section">
-                <h3>Gegner B (Markierungen)</h3>
-                <div id="opponent-b" class="grid opponent-grid"></div>
+                <h3>Gegner B</h3>
+                <div id="opponent-b" class="grid"></div>
             </div>
-        </div>
-        
-        <div class="controls">
-            <button onclick="resetMyBoard()">Eigene Schiffe zurücksetzen</button>
-            <p>Klicke auf Gegner-Felder, um Markierungen zu setzen (Leer -> Wasser -> Treffer -> Versenkt -> Vielleicht)</p>
         </div>
     </div>
 
