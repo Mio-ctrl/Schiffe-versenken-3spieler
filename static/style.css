@@ -1,18 +1,43 @@
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #222; color: white; display: flex; flex-direction: column; align-items: center; }
-.hidden { display: none !important; }
-.grid { display: grid; grid-template-columns: repeat(15, 25px); grid-template-rows: repeat(15, 25px); gap: 1px; background: #444; border: 2px solid #555; }
-.cell { width: 25px; height: 25px; background: #fff; cursor: pointer; border: 0.1px solid #eee;}
+/* Status für Gegnerfelder */
+.cell.water { background-color: #3498db !important; } /* Blau */
 
-/* Farben für Schiffe und Status */
-.cell.ship { background-color: #34495e; }
-.cell.water { background-color: #3498db; }
-.cell.hit { background-color: #e74c3c; }
-.cell.sunk { background-color: #000; }
-.cell.maybe { background-color: #f1c40f; }
+.cell.circle { 
+    position: relative;
+    background-color: #fff;
+}
+.cell.circle::after {
+    content: "";
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border: 3px solid #f1c40f; /* Gelber Kreis */
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+}
 
-.main-layout { display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
-.board-section { text-align: center; }
-#login-container { margin-top: 100px; text-align: center; background: #333; padding: 30px; border-radius: 8px; }
-input, select, button { padding: 10px; margin: 5px; border-radius: 4px; border: none; }
-button { background: #27ae60; color: white; cursor: pointer; }
-button:hover { background: #2ecc71; }
+.cell.cross { 
+    position: relative;
+    background-color: #fff;
+}
+.cell.cross::after {
+    content: "✕";
+    position: absolute;
+    color: #e74c3c; /* Rotes Kreuz */
+    font-weight: bold;
+    font-size: 20px;
+    top: -2px;
+    left: 4px;
+}
+
+#ship-counter {
+    font-weight: bold;
+    color: #2ecc71;
+    margin: 10px 0;
+}
+
+.save-btn {
+    background-color: #f39c12;
+    font-weight: bold;
+    margin-top: 10px;
+}
