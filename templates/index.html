@@ -21,22 +21,32 @@
     <div id="game-container" class="hidden">
         <header>
             <h2 id="current-player-display"></h2>
-            <div id="ship-counter">Noch zu platzierende Felder: 30</div>
+            <div id="status-area">
+                <span id="ship-instruction">Platziere ein 5er Schiff</span>
+                <div id="ship-counter">Noch 30 Felder insgesamt</div>
+            </div>
         </header>
     
         <div class="main-layout">
             <div class="board-section">
                 <h3>Meine Flotte</h3>
-                <div id="my-grid" class="grid"></div>
-                <button class="save-btn" onclick="saveFleet()">Flotte speichern</button>
-                <button onclick="resetMyBoard()">Reset</button>
+                <div class="grid-container">
+                    <div class="numbers-row" id="numbers-my"></div>
+                    <div class="grid-with-letters">
+                        <div class="letters-col" id="letters-my"></div>
+                        <div id="my-grid" class="grid"></div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="save-btn" onclick="confirmCurrentShip()">Schiff bestätigen</button>
+                    <button onclick="resetMyBoard()">Alles zurücksetzen</button>
+                </div>
             </div>
             
             <div class="board-section">
                 <h3>Gegner A</h3>
                 <div id="opponent-a" class="grid"></div>
             </div>
-    
             <div class="board-section">
                 <h3>Gegner B</h3>
                 <div id="opponent-b" class="grid"></div>
