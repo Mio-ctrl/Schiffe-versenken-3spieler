@@ -1,35 +1,27 @@
 let currentPlayer = "";
 const GRID_SIZE = 15;
-// Definition der Flotte: 1x5, 2x4, 3x3, 4x2 = Gesamt 30 Felder
-const MAX_SHIP_FIELDS = (1*5) + (2*4) + (3*3) + (4*2); 
-let placedFields = 0;
-
-function attemptLogin() {
-    const player = document.getElementById('player-select').value;
-    const password = document.getElementById('password-input').value;
-
-    fetch('/login', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({player, password})
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(data.status === "success") {
-            currentPlayer = player;
-            document.getElementById('login-container').classList.add('hidden');
-            document.getElementById('game-container').classList.remove('hidden');
-            document.getElementById('current-player-display').innerText = "Spieler: " + player;
-            initGrids();
-        } else { alert("Falsches Passwort!"); }
-    });
-}
+const fleetSchema = [5, 4, 4, 3, 3, 3, 2, 2, 2, 2]; // Alle Schiffe nacheinander
+let currentShipIndex = 0;
+let currentShipCells = []; // Zellen des aktuell im Bau befindlichen Schiffes
+let permanentShips = [];   // Alle bereits bestätigten Zellen
 
 function initGrids() {
+    setupLabels();
     createGrid('my-grid', true);
     createGrid('opponent-a', false);
     createGrid('opponent-b', false);
-    updateCounter();
+    updateInstruction();
+}
+
+function setupLabels() {
+    const letters = "ABCDEFGHIJKLMNO".split("");
+    const lCol = document.getElementById('letters-my');
+    const nRow = document.getElementById('numbers-my');
+    nRow.innerHTML = '<div></div>'; // Leere Ecke
+    for(let i=1; i<=15; i++) {
+        nRow.innerHTML += `<div class="coord-label">${i}</div>`;
+        lCol.innerHTML += `<div class="coord-label">${letters[i-1]}</div>`;
+    }
 }
 
 function createGrid(elementId, isPlayerGrid) {
@@ -38,8 +30,9 @@ function createGrid(elementId, isPlayerGrid) {
     for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
         const cell = document.createElement('div');
         cell.classList.add('cell');
+        cell.dataset.index = i;
         if (isPlayerGrid) {
-            cell.onclick = () => toggleShip(cell);
+            cell.onclick = () => handleFleetClick(cell, i);
         } else {
             cell.onclick = () => cycleOpponentStatus(cell);
         }
@@ -47,48 +40,93 @@ function createGrid(elementId, isPlayerGrid) {
     }
 }
 
-function toggleShip(cell) {
-    if (!cell.classList.contains('ship') && placedFields >= MAX_SHIP_FIELDS) {
-        alert("Alle Schiffe platziert!");
-        return;
-    }
+function handleFleetClick(cell, index) {
+    if (permanentShips.includes(index)) return; // Bereits besetzt
     
-    cell.classList.toggle('ship');
-    placedFields = document.querySelectorAll('#my-grid .cell.ship').length;
-    updateCounter();
+    const pos = currentShipCells.indexOf(index);
+    if (pos > -1) {
+        currentShipCells.splice(pos, 1);
+        cell.classList.remove('current-build');
+    } else {
+        if (currentShipCells.length < fleetSchema[currentShipIndex]) {
+            currentShipCells.push(index);
+            cell.classList.add('current-build');
+        }
+    }
 }
 
-function updateCounter() {
-    const remaining = MAX_SHIP_FIELDS - placedFields;
-    document.getElementById('ship-counter').innerText = `Noch zu platzierende Felder: ${remaining}`;
-}
-
-function saveFleet() {
-    if (placedFields !== MAX_SHIP_FIELDS) {
-        alert(`Du musst genau ${MAX_SHIP_FIELDS} Felder belegen!`);
+function confirmCurrentShip() {
+    const needed = fleetSchema[currentShipIndex];
+    if (currentShipCells.length !== needed) {
+        alert(`Dieses Schiff muss genau ${needed} Felder groß sein!`);
         return;
     }
-    // Hier könnte eine API-Anfrage stehen, um die Flotte serverseitig zu speichern
-    alert("Flotte erfolgreich gespeichert! (Lokal)");
+
+    if (!isValidConnection(currentShipCells)) {
+        alert("Fehler: Schiffsteile müssen zusammenhängen (nicht diagonal)!");
+        return;
+    }
+
+    // Schiff als permanent markieren
+    currentShipCells.forEach(idx => {
+        permanentShips.push(idx);
+        const cell = document.querySelector(`#my-grid .cell[data-index="${idx}"]`);
+        cell.classList.remove('current-build');
+        cell.classList.add('ship');
+    });
+
+    currentShipCells = [];
+    currentShipIndex++;
+
+    if (currentShipIndex >= fleetSchema.length) {
+        document.getElementById('ship-instruction').innerText = "Alle Schiffe bereit!";
+        alert("Flotte komplett!");
+    } else {
+        updateInstruction();
+    }
 }
 
-function cycleOpponentStatus(cell) {
-    // Status: leer -> wasser (blau) -> kreis (vermutung) -> kreuz (treffer)
-    if (!cell.classList.contains('water') && !cell.classList.contains('circle') && !cell.classList.contains('cross')) {
-        cell.classList.add('water');
-    } else if (cell.classList.contains('water')) {
-        cell.classList.remove('water');
-        cell.classList.add('circle');
-    } else if (cell.classList.contains('circle')) {
-        cell.classList.remove('circle');
-        cell.classList.add('cross');
-    } else {
-        cell.classList.remove('cross');
+function isValidConnection(cells) {
+    if (cells.length === 0) return false;
+    let visited = new Set();
+    let queue = [cells[0]];
+    visited.add(cells[0]);
+
+    while (queue.length > 0) {
+        let curr = queue.shift();
+        let r = Math.floor(curr / GRID_SIZE);
+        let c = curr % GRID_SIZE;
+
+        let neighbors = [
+            curr - GRID_SIZE, curr + GRID_SIZE, // oben, unten
+            curr - 1, curr + 1                  // links, rechts
+        ];
+
+        neighbors.forEach(nb => {
+            // Check ob Nachbar im aktuellen Schiff liegt und noch nicht besucht wurde
+            if (cells.includes(nb) && !visited.has(nb)) {
+                // Verhindere Zeilenumbruch-Nachbarschaft (rechts -> links)
+                let nr = Math.floor(nb / GRID_SIZE);
+                let nc = nb % GRID_SIZE;
+                if (Math.abs(r - nr) + Math.abs(c - nc) === 1) {
+                    visited.add(nb);
+                    queue.push(nb);
+                }
+            }
+        });
     }
+    return visited.size === cells.length;
+}
+
+function updateInstruction() {
+    const size = fleetSchema[currentShipIndex];
+    document.getElementById('ship-instruction').innerText = `Platziere ein ${size}er Schiff`;
 }
 
 function resetMyBoard() {
+    permanentShips = [];
+    currentShipCells = [];
+    currentShipIndex = 0;
     document.querySelectorAll('#my-grid .cell').forEach(c => c.className = 'cell');
-    placedFields = 0;
-    updateCounter();
+    updateInstruction();
 }
