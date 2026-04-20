@@ -2,38 +2,51 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3-Spieler Schiffe Versenken</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div id="login-screen">
-        <h1>Login</h1>
+    <div id="login-container">
+        <h1>Schiffe Versenken 3P</h1>
         <select id="player-select">
             <option>Spieler 1</option>
             <option>Spieler 2</option>
             <option>Spieler 3</option>
         </select>
-        <input type="password" id="pw-input" placeholder="Passwort">
-        <button onclick="login()">Starten</button>
+        <input type="password" id="password-input" placeholder="Passwort">
+        <button onclick="attemptLogin()">Spiel starten</button>
     </div>
 
-    <div id="game-screen" style="display:none;">
-        <h2 id="welcome-msg"></h2>
-        <div class="boards-container">
-            <div class="board-wrapper">
-                <h3>Meine Schiffe</h3>
-                <div id="my-board" class="grid"></div>
+    <div id="game-container" class="hidden">
+        <header>
+            <h2 id="current-player-display"></h2>
+            <div id="ship-info">Schiffe setzen: 5er(1), 4er(2), 3er(3), 2er(4)</div>
+        </header>
+
+        <div class="main-layout">
+            <div class="board-section">
+                <h3>Meine Flotte</h3>
+                <div id="my-grid" class="grid"></div>
             </div>
-            <div class="board-wrapper">
-                <h3>Gegner A</h3>
-                <div id="opponent-a" class="grid"></div>
+
+            <div class="board-section">
+                <h3>Gegner A (Markierungen)</h3>
+                <div id="opponent-a" class="grid opponent-grid"></div>
             </div>
-            <div class="board-wrapper">
-                <h3>Gegner B</h3>
-                <div id="opponent-b" class="grid"></div>
+
+            <div class="board-section">
+                <h3>Gegner B (Markierungen)</h3>
+                <div id="opponent-b" class="grid opponent-grid"></div>
             </div>
         </div>
+        
+        <div class="controls">
+            <button onclick="resetMyBoard()">Eigene Schiffe zurücksetzen</button>
+            <p>Klicke auf Gegner-Felder, um Markierungen zu setzen (Leer -> Wasser -> Treffer -> Versenkt -> Vielleicht)</p>
+        </div>
     </div>
-    <script src="/static/script.js"></script>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
