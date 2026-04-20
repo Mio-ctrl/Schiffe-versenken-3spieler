@@ -1,5 +1,8 @@
 let currentPlayer = "";
 const GRID_SIZE = 15;
+// Definition der Flotte: 1x5, 2x4, 3x3, 4x2 = Gesamt 30 Felder
+const MAX_SHIP_FIELDS = (1*5) + (2*4) + (3*3) + (4*2); 
+let placedFields = 0;
 
 function attemptLogin() {
     const player = document.getElementById('player-select').value;
@@ -16,11 +19,9 @@ function attemptLogin() {
             currentPlayer = player;
             document.getElementById('login-container').classList.add('hidden');
             document.getElementById('game-container').classList.remove('hidden');
-            document.getElementById('current-player-display').innerText = "Bereit, " + player;
+            document.getElementById('current-player-display').innerText = "Spieler: " + player;
             initGrids();
-        } else {
-            alert(data.message);
-        }
+        } else { alert("Falsches Passwort!"); }
     });
 }
 
@@ -28,6 +29,7 @@ function initGrids() {
     createGrid('my-grid', true);
     createGrid('opponent-a', false);
     createGrid('opponent-b', false);
+    updateCounter();
 }
 
 function createGrid(elementId, isPlayerGrid) {
@@ -36,35 +38,57 @@ function createGrid(elementId, isPlayerGrid) {
     for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
         const cell = document.createElement('div');
         cell.classList.add('cell');
-        cell.dataset.index = i;
-        
         if (isPlayerGrid) {
             cell.onclick = () => toggleShip(cell);
         } else {
-            cell.onclick = () => cycleStatus(cell);
+            cell.onclick = () => cycleOpponentStatus(cell);
         }
         grid.appendChild(cell);
     }
 }
 
 function toggleShip(cell) {
-    // Einfache Logik: Umschalten zwischen Schiff und Wasser
-    // Hier könnte man noch prüfen, ob Schiffe sich berühren (Nachbarschafts-Check)
+    if (!cell.classList.contains('ship') && placedFields >= MAX_SHIP_FIELDS) {
+        alert("Alle Schiffe platziert!");
+        return;
+    }
+    
     cell.classList.toggle('ship');
+    placedFields = document.querySelectorAll('#my-grid .cell.ship').length;
+    updateCounter();
 }
 
-function cycleStatus(cell) {
-    const states = ['', 'water', 'hit', 'sunk', 'maybe'];
-    let currentIdx = states.findIndex(s => s === '' ? !cell.className.includes(' ') : cell.classList.contains(s));
-    
-    // Aktuelle Klasse entfernen
-    states.forEach(s => { if(s) cell.classList.remove(s); });
-    
-    // Nächsten Status setzen
-    let nextIdx = (currentIdx + 1) % states.length;
-    if(states[nextIdx]) cell.classList.add(states[nextIdx]);
+function updateCounter() {
+    const remaining = MAX_SHIP_FIELDS - placedFields;
+    document.getElementById('ship-counter').innerText = `Noch zu platzierende Felder: ${remaining}`;
+}
+
+function saveFleet() {
+    if (placedFields !== MAX_SHIP_FIELDS) {
+        alert(`Du musst genau ${MAX_SHIP_FIELDS} Felder belegen!`);
+        return;
+    }
+    // Hier könnte eine API-Anfrage stehen, um die Flotte serverseitig zu speichern
+    alert("Flotte erfolgreich gespeichert! (Lokal)");
+}
+
+function cycleOpponentStatus(cell) {
+    // Status: leer -> wasser (blau) -> kreis (vermutung) -> kreuz (treffer)
+    if (!cell.classList.contains('water') && !cell.classList.contains('circle') && !cell.classList.contains('cross')) {
+        cell.classList.add('water');
+    } else if (cell.classList.contains('water')) {
+        cell.classList.remove('water');
+        cell.classList.add('circle');
+    } else if (cell.classList.contains('circle')) {
+        cell.classList.remove('circle');
+        cell.classList.add('cross');
+    } else {
+        cell.classList.remove('cross');
+    }
 }
 
 function resetMyBoard() {
     document.querySelectorAll('#my-grid .cell').forEach(c => c.className = 'cell');
+    placedFields = 0;
+    updateCounter();
 }
