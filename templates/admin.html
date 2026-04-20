@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Schiffe Versenken</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-box { background: #333; padding: 20px; border-radius: 8px; margin-top: 50px; width: 300px; }
+        input { width: 90%; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="admin-box">
+        <h2>Passwörter ändern</h2>
+        <div id="admin-form">
+            <label>Spieler 1 PW:</label>
+            <input type="text" id="pw1" placeholder="Neues PW">
+            <label>Spieler 2 PW:</label>
+            <input type="text" id="pw2" placeholder="Neues PW">
+            <label>Spieler 3 PW:</label>
+            <input type="text" id="pw3" placeholder="Neues PW">
+            <button onclick="savePasswords()">Speichern</button>
+        </div>
+        <p><a href="/" style="color: #27ae60;">Zurück zum Spiel</a></p>
+    </div>
+
+    <script>
+        function savePasswords() {
+            const data = {
+                "Spieler 1": document.getElementById('pw1').value,
+                "Spieler 2": document.getElementById('pw2').value,
+                "Spieler 3": document.getElementById('pw3').value
+            };
+            
+            fetch('/admin/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(res => alert("Passwörter aktualisiert!"));
+        }
+    </script>
+</body>
+</html>
